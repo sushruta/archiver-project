@@ -1,4 +1,4 @@
-package inc.asapp.flink.jobs
+package inc.asapp.flink.apps
 
 import java.util.Properties
 import java.util.concurrent._

@@ -11,8 +11,6 @@ COPY conf/flink-conf.yaml ${FLINK_HOME}/conf
 COPY conf/core-site.xml ${FLINK_HOME}/conf
 COPY conf/log4j-console.properties ${FLINK_HOME}/conf
 
-COPY scripts/entrypoint.sh /usr/local/bin/
-
 # RUN groupadd -r hadoop && useradd --no-log-init -r -g hadoop yarn
 # USER yarn
 
@@ -23,9 +21,10 @@ RUN apk add --no-cache curl && \
     ln -s /usr/local/sbt/bin/* /usr/local/bin/ && \
     apk del curl
 
+
 ADD app /usr/src/app
-RUN ls /usr/src/app
-RUN sbt sbtVersion
+WORKDIR /usr/src/app
+ADD scripts/entrypoint.sh /usr/local/bin/
 
 EXPOSE 8081 6123
 

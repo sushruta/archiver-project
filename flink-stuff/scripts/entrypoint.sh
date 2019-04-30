@@ -2,5 +2,4 @@
 
 sbt clean compile assembly
 
-ls target/scala-2.11
-exec flink run -c inc.asapp.flink.jobs.Archiver target/scala-2.11/archiver-0.1.jar
+exec flink run -c inc.asapp.flink.apps.Archiver target/scala-2.11/archiver-assembly-0.1.jar

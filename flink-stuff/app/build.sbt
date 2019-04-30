@@ -5,11 +5,11 @@ ThisBuild / resolvers ++= Seq(
 
 name := "archiver"
 version := "0.1"
-organization := "inc.asapp.flink.jobs"
+organization := "inc.asapp.flink.apps"
 
 ThisBuild / scalaVersion := "2.11.12"
 
-val flinkVersion = "1.8.0"
+val flinkVersion = "1.7.2"
 val scalatestVersion = "3.0.4"
 val typesafeConfigVersion = "1.3.2"
 val json4sVersion = "3.5.3"
@@ -30,6 +30,8 @@ lazy val root = (project in file(".")).
   settings(
     libraryDependencies ++= flinkDependencies ++ generalDependencies
   )
+
+assembly / mainClass := Some("inc.asapp.flink.apps.Archiver")
 
 // exclude Scala library from assembly
 assembly / assemblyOption  := (assembly / assemblyOption).value.copy(includeScala = false)
