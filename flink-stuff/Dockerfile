@@ -1,4 +1,4 @@
-FROM flink:1.7.2-hadoop26-scala_2.11-alpine
+FROM flink:1.7.2-hadoop28-scala_2.11-alpine
 MAINTAINER sashidhar guntury <sguntury@gmail.com>
 
 ENV FLINK_HOME="/opt/flink"
@@ -7,11 +7,11 @@ ENV FLINK_OPT_DIR=${FLINK_HOME}/opt
 ENV FLINK_BIN_DIR=${FLINK_HOME}/bin
 ENV PATH=${FLINK_BIN_DIR}:${PATH}
 
-## COPY flink-conf.yaml ${FLINK_HOME}/conf
-## COPY core-site.xml ${FLINK_HOME}/conf
-## COPY log4j-console.properties ${FLINK_HOME}/conf
+COPY conf/flink-conf.yaml ${FLINK_HOME}/conf
+COPY conf/core-site.xml ${FLINK_HOME}/conf
+COPY conf/log4j-console.properties ${FLINK_HOME}/conf
 
-COPY entrypoint.sh /usr/src/app/
+COPY scripts/entrypoint.sh /usr/local/bin/
 
 # RUN groupadd -r hadoop && useradd --no-log-init -r -g hadoop yarn
 # USER yarn
@@ -23,8 +23,12 @@ RUN apk add --no-cache curl && \
     ln -s /usr/local/sbt/bin/* /usr/local/bin/ && \
     apk del curl
 
+ADD app /usr/src/app
+RUN ls /usr/src/app
+RUN sbt sbtVersion
+
 EXPOSE 8081 6123
 
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 CMD []

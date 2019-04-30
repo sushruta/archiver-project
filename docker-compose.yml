@@ -69,14 +69,11 @@ services:
       context: ./go-stuff/
       dockerfile: Dockerfile
 
-  hadoop-docker:
-    image: asappinc_challenge/hadoop-docker
+  hadoop:
+    image: asappinc_challenge/hadoop
     build:
       context: ./hadoop-stuff/
       dockerfile: Dockerfile
-
-  hadoop:
-    image: asappinc_challenge/hadoop-docker
     ports:
     - "0.0.0.0:50010:50010"
     - "0.0.0.0:50020:50020"
