@@ -63,17 +63,20 @@ services:
     volumes:
     - elastic-data:/usr/share/elasticsearch/data
 
-  ##archiver:
-  ##  image: asappinc_challenge/archiver
-  ##  build:
-  ##    context: ./go-stuff/
-  ##    dockerfile: Dockerfile
+  archiver:
+    image: asappinc_challenge/archiver
+    build:
+      context: ./go-stuff/
+      dockerfile: Dockerfile
 
-  hadoop:
+  hadoop-docker:
     image: asappinc_challenge/hadoop-docker
     build:
       context: ./hadoop-stuff/
       dockerfile: Dockerfile
+
+  hadoop:
+    image: asappinc_challenge/hadoop-docker
     ports:
     - "0.0.0.0:50010:50010"
     - "0.0.0.0:50020:50020"
@@ -93,7 +96,6 @@ services:
     - "0.0.0.0:8088:8088"
     - "0.0.0.0:49707:49707"
     - "0.0.0.0:2122:2122"
-    command: ["/usr/hadoop-entrypoint.sh"]
     links:
     - zookeeper
 
