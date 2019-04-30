@@ -1,0 +1,35 @@
+# state persistent directories are on hdfs
+high-availability.storageDir: hdfs:///flink-recovery/archiver
+state.checkpoints.dir: hdfs:///flink-externalized-checkpoints/archiver
+state.checkpoints.num-retained: 5
+
+#akka default overrides
+## Increased to prevent savepoints/with or without cancellation that work with larger state from timing out
+## the default was 60 s[econds]
+akka.client.timeout: 120 s
+
+# Path to the Hadoop configuration directory.
+fs.hdfs.hadoopconf: /opt/flink/conf
+
+#==============================================================================
+# Master High Availability (required configuration)
+#==============================================================================
+
+high-availability: zookeeper
+high-availability.zookeeper.quorum: zookeeper:2181
+high-availability.zookeeper.path.root: /archiver
+high-availability.cluster-id: /archiver/cluster
+high-availability.jobmanager.port: 6123
+
+taskmanager.numberOfTaskSlots: 4
+
+taskmanager.memory.off-heap: false
+taskmanager.memory.preallocate: true
+taskmanager.debug.memory.startLogThread: true
+taskmanager.debug.memory.logIntervalMs: 600000
+
+# web
+jobstore.expiration-time : 86400
+web.timeout : 120000
+akka.jvm-exit-on-fatal-error: true
+akka.ask.timeout: 30s

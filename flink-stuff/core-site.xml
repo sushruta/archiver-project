@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+  <property>
+    <name>fs.default.name</name>
+    <value>hdfs://hadoop:8020</value>
+  </property>
+
+  <property>
+    <name>hadoop.tmp.dir</name>
+    <value>/var/tmp/hadoop</value>
+    <final>true</final>
+  </property>
+</configuration>
