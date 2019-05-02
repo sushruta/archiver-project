@@ -1,5 +1,7 @@
 #!/bin/bash
 
-sbt clean compile assembly
+exec /bin/sh -c "trap : TERM INT; (while true; do sleep 1000; done) & wait"
 
-exec flink run -c inc.asapp.flink.apps.Archiver target/scala-2.11/archiver-assembly-0.1.jar
+## sbt clean compile assembly
+## 
+## exec flink run -c com.asappinc.Archiver target/scala-2.11/archiver-assembly-0.1.jar

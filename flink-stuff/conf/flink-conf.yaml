@@ -11,6 +11,14 @@ akka.client.timeout: 120 s
 # Path to the Hadoop configuration directory.
 fs.hdfs.hadoopconf: /opt/flink/conf
 
+##################
+# The below configurations are not strictly needed
+# as I'm doing Flink in a single cluster mode
+#
+# Zookeeper is useful if we need high availaibility
+# of JobManager and that doesn't happen in this case
+##################
+
 #==============================================================================
 # Master High Availability (required configuration)
 #==============================================================================

@@ -1,4 +1,4 @@
-package inc.asapp.flink.apps
+package com.asappinc
 
 import java.util.Properties
 import java.util.concurrent._
@@ -18,7 +18,7 @@ import com.typesafe.config.ConfigFactory
 
 object Archiver {
   def main(args: Array[String]): Unit = {
-    val appname = "Archiver-PersistKafka"
+    val appname = "Archiver-Data-Challenge"
 
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment

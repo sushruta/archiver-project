@@ -9,6 +9,7 @@ ENV PATH=${FLINK_BIN_DIR}:${PATH}
 
 COPY conf/flink-conf.yaml ${FLINK_HOME}/conf
 COPY conf/core-site.xml ${FLINK_HOME}/conf
+COPY conf/yarn-site.xml ${FLINK_HOME}/conf
 COPY conf/log4j-console.properties ${FLINK_HOME}/conf
 
 # RUN groupadd -r hadoop && useradd --no-log-init -r -g hadoop yarn
