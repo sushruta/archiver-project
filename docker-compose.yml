@@ -2,10 +2,10 @@
 version: '3'
 
 volumes:
-  mysql-data:
+  #mysql-data:
   kafka-data:
-  elastic-data:
-  hadoop-data:
+  #elastic-data:
+  #hadoop-data:
 
 services:
   zookeeper:
@@ -43,25 +43,25 @@ services:
     volumes:
     - kafka-data:/kafka
 
-  mysql:
-    image: mysql:5.7
-    ports:
-    # different ports to allow a local host installed mysql as well
-    - "0.0.0.0:3318:3306"
-    command: ["mysqld", "--explicit-defaults-for-timestamp=1"]
-    environment:
-      MYSQL_DATABASE: archive
-      MYSQL_ROOT_PASSWORD: archive
-      MYSQL_HOST: "%"
-    volumes:
-    - mysql-data:/var/lib/mysql
+  ##mysql:
+  ##  image: mysql:5.7
+  ##  ports:
+  ##  # different ports to allow a local host installed mysql as well
+  ##  - "0.0.0.0:3318:3306"
+  ##  command: ["mysqld", "--explicit-defaults-for-timestamp=1"]
+  ##  environment:
+  ##    MYSQL_DATABASE: archive
+  ##    MYSQL_ROOT_PASSWORD: archive
+  ##    MYSQL_HOST: "%"
+  ##  volumes:
+  ##  - mysql-data:/var/lib/mysql
 
-  elasticsearch:
-    image: elasticsearch:5.5.2
-    ports:
-    - "0.0.0.0:9200:9200"
-    volumes:
-    - elastic-data:/usr/share/elasticsearch/data
+  ##elasticsearch:
+  ##  image: elasticsearch:5.5.2
+  ##  ports:
+  ##  - "0.0.0.0:9200:9200"
+  ##  volumes:
+  ##  - elastic-data:/usr/share/elasticsearch/data
 
   archiver:
     image: asappinc_challenge/archiver
@@ -69,32 +69,32 @@ services:
       context: ./go-stuff/
       dockerfile: Dockerfile
 
-  hadoop:
-    image: asappinc_challenge/hadoop
-    build:
-      context: ./hadoop-stuff/
-      dockerfile: Dockerfile
-    ports:
-    - "0.0.0.0:50010:50010"
-    - "0.0.0.0:50020:50020"
-    - "0.0.0.0:50070:50070"
-    - "0.0.0.0:50075:50075"
-    - "0.0.0.0:50090:50090"
-    - "0.0.0.0:8020:8020"
-    - "0.0.0.0:9000:9000"
-    - "0.0.0.0:10020:10020"
-    - "0.0.0.0:19888:19888"
-    - "0.0.0.0:8030:8030"
-    - "0.0.0.0:8031:8031"
-    - "0.0.0.0:8032:8032"
-    - "0.0.0.0:8033:8033"
-    - "0.0.0.0:8040:8040"
-    - "0.0.0.0:8042:8042"
-    - "0.0.0.0:8088:8088"
-    - "0.0.0.0:49707:49707"
-    - "0.0.0.0:2122:2122"
-    links:
-    - zookeeper
+  ##hadoop:
+  ##  image: asappinc_challenge/hadoop
+  ##  build:
+  ##    context: ./hadoop-stuff/
+  ##    dockerfile: Dockerfile
+  ##  ports:
+  ##  - "0.0.0.0:50010:50010"
+  ##  - "0.0.0.0:50020:50020"
+  ##  - "0.0.0.0:50070:50070"
+  ##  - "0.0.0.0:50075:50075"
+  ##  - "0.0.0.0:50090:50090"
+  ##  - "0.0.0.0:8020:8020"
+  ##  - "0.0.0.0:9000:9000"
+  ##  - "0.0.0.0:10020:10020"
+  ##  - "0.0.0.0:19888:19888"
+  ##  - "0.0.0.0:8030:8030"
+  ##  - "0.0.0.0:8031:8031"
+  ##  - "0.0.0.0:8032:8032"
+  ##  - "0.0.0.0:8033:8033"
+  ##  - "0.0.0.0:8040:8040"
+  ##  - "0.0.0.0:8042:8042"
+  ##  - "0.0.0.0:8088:8088"
+  ##  - "0.0.0.0:49707:49707"
+  ##  - "0.0.0.0:2122:2122"
+  ##  links:
+  ##  - zookeeper
 
   producer:
     image: asappinc_challenge/archiver
@@ -108,7 +108,7 @@ services:
 
   echoconsumer:
     image: asappinc_challenge/archiver
-    command: ["go", "run", "cmd/echoconsume/echoconsume.go"]
+    command: ["go", "run", "cmd/archiver/archiver.go"] # "cmd/echoconsume/echoconsume.go"]
     working_dir: /gobits/src/github.com/asappinc/challenge-di-eng
     environment:
       KAFKA_BROKERS: kafka:9092
@@ -116,26 +116,25 @@ services:
     links:
     - kafka
 
-  dev:
-    image: asappinc_challenge/archiver
-    command: ["bash"]
-    environment:
-      MYSQL_HOST: mysql
-      MYSQL_PASSWORD: archive
-      MYSQL_DB: archive
-      MYSQL_PORT: 3306
-
-      ELASTICSEARCH: elasticsearch:9092
-      ELASTICSEARCH_INDEX: archive
-
-      KAFKA_BROKERS: kafka:9092
-      KAFKA_TOPICS: "first_topic,second_topic,third_topic"
-
-    working_dir: /gobits/src/github.com/asappinc/challenge-di-eng
-    volumes:
-      - $PWD/go-stuff/src/github.com/asappinc/challenge-di-eng:/gobits/src/github.com/asappinc/challenge-di-eng
+#  dev:
+#    image: asappinc_challenge/archiver
+#    command: ["bash"] # go", "run", "cmd/archiver/archiver.go"]
+#    working_dir: /gobits/src/github.com/asappinc/challenge-di-eng
+#    environment:
+#      MYSQL_HOST: mysql
+#      MYSQL_PASSWORD: archive
+#      MYSQL_DB: archive
+#      MYSQL_PORT: 3306
+#
+#      ELASTICSEARCH: elasticsearch:9092
+#      ELASTICSEARCH_INDEX: archive
+#
+#      KAFKA_BROKERS: kafka:9092
+#      KAFKA_TOPICS: "first_topic,second_topic,third_topic"
+#    volumes:
+#      - $PWD/go-stuff/src/github.com/asappinc/challenge-di-eng:/gobits/src/github.com/asappinc/challenge-di-eng
 
     links:
-      - mysql
+      #- mysql
       - kafka
-      - hadoop
+      #- hadoop
