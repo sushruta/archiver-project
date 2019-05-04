@@ -5,14 +5,13 @@ volumes:
   #mysql-data:
   kafka-data:
   #elastic-data:
-  hadoop-data:
+  #hadoop-data:
 
 services:
   zookeeper:
     image: asappinc/alpine_zookeeper34
     ports:
     - "2181:2181"
-    - "6123:6123"
     healthcheck:
       test: "nc -z localhost 2181"
       interval: 1s
@@ -64,69 +63,66 @@ services:
   ##  volumes:
   ##  - elastic-data:/usr/share/elasticsearch/data
 
-  go-app:
-    image: asappinc/goapp
-    build:
-      context: ./go-stuff/
-      dockerfile: Dockerfile
+  ##hadoop:
+  ##  image: asappinc_challenge/hadoop
+  ##  build:
+  ##    context: ./hadoop-stuff/
+  ##    dockerfile: Dockerfile
+  ##  ports:
+  ##  - "0.0.0.0:50010:50010"
+  ##  - "0.0.0.0:50020:50020"
+  ##  - "0.0.0.0:50070:50070"
+  ##  - "0.0.0.0:50075:50075"
+  ##  - "0.0.0.0:50090:50090"
+  ##  - "0.0.0.0:8020:8020"
+  ##  - "0.0.0.0:9000:9000"
+  ##  - "0.0.0.0:10020:10020"
+  ##  - "0.0.0.0:19888:19888"
+  ##  - "0.0.0.0:8030:8030"
+  ##  - "0.0.0.0:8031:8031"
+  ##  - "0.0.0.0:8032:8032"
+  ##  - "0.0.0.0:8033:8033"
+  ##  - "0.0.0.0:8040:8040"
+  ##  - "0.0.0.0:8042:8042"
+  ##  - "0.0.0.0:8088:8088"
+  ##  - "0.0.0.0:49707:49707"
+  ##  - "0.0.0.0:2122:2122"
+  ##  links:
+  ##  - zookeeper
 
-  hadoop:
-    image: asappinc_challenge/hadoop
-    build:
-      context: ./hadoop-stuff/
-      dockerfile: Dockerfile
-    ports:
-    - "0.0.0.0:50010:50010"
-    - "0.0.0.0:50020:50020"
-    - "0.0.0.0:50070:50070"
-    - "0.0.0.0:50075:50075"
-    - "0.0.0.0:50090:50090"
-    - "0.0.0.0:8020:8020"
-    - "0.0.0.0:9000:9000"
-    - "0.0.0.0:10020:10020"
-    - "0.0.0.0:19888:19888"
-    - "0.0.0.0:8030:8030"
-    - "0.0.0.0:8031:8031"
-    - "0.0.0.0:8032:8032"
-    - "0.0.0.0:8033:8033"
-    - "0.0.0.0:8040:8040"
-    - "0.0.0.0:8042:8042"
-    - "0.0.0.0:8088:8088"
-    - "0.0.0.0:49707:49707"
-    - "0.0.0.0:2122:2122"
-    links:
-    - zookeeper
+#  go-app:
+#    image: asappinc_challenge/go-app
+#    build:
+#      context: ./go-stuff/
+#      dockerfile: Dockerfile
+#
+#  producer:
+#    image: asappinc_challenge/go-app
+#    command: ["/gobits/bin/produce"]
+#    environment:
+#      KAFKA_BROKERS: kafka:9092
+#      KAFKA_TOPICS: "first_topic,second_topic,third_topic"
+#    links:
+#      - kafka
+#
+#  echoconsumer:
+#    image: asappinc_challenge/go-app
+#    command: ["/gobits/bin/echoconsume"] #archiver"]
+#    environment:
+#      KAFKA_BROKERS: kafka:9092
+#      KAFKA_TOPICS: "first_topic,second_topic,third_topic"
+#    links:
+#    - kafka
 
-  producer:
-    image: asappinc/goapp
-    command: ["go", "run", "cmd/produce/produce.go"]
-    working_dir: /gobits/src/github.com/asappinc/challenge-di-eng
-    environment:
-      KAFKA_BROKERS: kafka:9092
-      KAFKA_TOPICS: "first_topic,second_topic,third_topic"
-    links:
-      - kafka
-
-  echoconsumer:
-    image: asappinc/goapp
-    command: ["go", "run", "cmd/archiver/archiver.go"] # "cmd/echoconsume/echoconsume.go"]
-    working_dir: /gobits/src/github.com/asappinc/challenge-di-eng
-    environment:
-      KAFKA_BROKERS: kafka:9092
-      KAFKA_TOPICS: "first_topic,second_topic,third_topic"
-    links:
-    - kafka
-
-  archiver:
-    image: asappinc/flinkapp
-    build:
-      context: ./flink-stuff/
-      dockerfile: Dockerfile
-    command: ["/usr/local/bin/entrypoint.sh"]
-    links:
-    - kafka
-    - hadoop
-    - zookeeper
+#  archiver:
+#    build:
+#      context: ./flink-stuff/
+#      dockerfile: Dockerfile
+#    command: ["/usr/local/bin/entrypoint.sh"]
+#    ports:
+#    - "0.0.0.0:8081:8081"
+#    links:
+#    - kafka
 
   ##dev:
   ##  image: asappinc_challenge/archiver

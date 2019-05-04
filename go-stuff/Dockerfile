@@ -7,5 +7,7 @@ COPY ./ /gobits
 
 RUN cd /gobits/src/github.com/asappinc/challenge-di-eng && dep ensure
 
-WORKDIR /gobits
-CMD ["go", "run", "src/github.com/asappinc/challenge-di-eng/cmd/archiver/archiver.go"]
+WORKDIR /gobits/src
+RUN go install github.com/asappinc/challenge-di-eng/cmd/archiver
+RUN go install github.com/asappinc/challenge-di-eng/cmd/echoconsume
+RUN go install github.com/asappinc/challenge-di-eng/cmd/produce

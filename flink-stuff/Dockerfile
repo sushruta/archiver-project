@@ -7,10 +7,10 @@ ENV FLINK_OPT_DIR=${FLINK_HOME}/opt
 ENV FLINK_BIN_DIR=${FLINK_HOME}/bin
 ENV PATH=${FLINK_BIN_DIR}:${PATH}
 
-COPY conf/flink-conf.yaml ${FLINK_HOME}/conf
-COPY conf/core-site.xml ${FLINK_HOME}/conf
-COPY conf/yarn-site.xml ${FLINK_HOME}/conf
-COPY conf/log4j-console.properties ${FLINK_HOME}/conf
+# COPY conf/flink-conf.yaml ${FLINK_HOME}/conf
+# COPY conf/core-site.xml ${FLINK_HOME}/conf
+# COPY conf/yarn-site.xml ${FLINK_HOME}/conf
+# COPY conf/log4j-console.properties ${FLINK_HOME}/conf
 
 # RUN groupadd -r hadoop && useradd --no-log-init -r -g hadoop yarn
 # USER yarn
@@ -25,6 +25,7 @@ RUN apk add --no-cache curl && \
 
 ADD app /usr/src/app
 WORKDIR /usr/src/app
+RUN sbt clean compile assembly
 ADD scripts/entrypoint.sh /usr/local/bin/
 
 EXPOSE 8081 6123
