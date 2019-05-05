@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -ex
+
+service ssh restart
+
+mkdir -p $HADOOP_HOME/hadoop_data/hdfs/datanode
+
+if [[ $1 == "-d" ]]; then
+  while true; do sleep 1000; done
+fi
+
+if [[ $1 == "-bash" ]]; then
+  /bin/bash
+fi
