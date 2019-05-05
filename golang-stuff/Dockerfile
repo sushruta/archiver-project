@@ -6,3 +6,5 @@ RUN mkdir -p /gobits
 COPY ./ /gobits
 
 RUN cd /gobits/src/github.com/asappinc/challenge-di-eng && dep ensure
+
+WORKDIR /gobits/src/github.com/asappinc/challenge-di-eng 

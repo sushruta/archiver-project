@@ -51,7 +51,7 @@ func main() {
 		}
 	}()
 
-	consumer, errors := consume("topic_name", master)
+	consumer, errors := consume("first_topic", master)
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt)
