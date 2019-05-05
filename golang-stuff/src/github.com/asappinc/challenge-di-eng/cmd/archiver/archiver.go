@@ -4,6 +4,35 @@ import "fmt"
 import "github.com/Shopify/sarama"
 import "os"
 import "os/signal"
+import "time"
+import "log"
+
+type Batcher struct {
+	from chan string
+	to chan []string
+	buffer []string
+	filename string
+}
+
+func (b *Batcher) initialize(filename string) {
+	// would initialize stuff here
+	b.from = make(chan string, 1)
+	b.to = make(chan []string, 1)
+	b.buffer = make([]string, 0)
+}
+
+func (b *Batcher) accumulate(message string) {
+	b.from <- message
+}
+
+func (b *Batcher) flush() {
+	b.to <- b.buffer
+	b.buffer = make([]string, 0)
+	tmpbuf := <-b.to
+	for _, message := range tmpbuf {
+		log.Println("flushed message>>", message)
+	}
+}
 
 func consume(topic string, master sarama.Consumer) (chan *sarama.ConsumerMessage, chan *sarama.ConsumerError) {
 	consumers := make(chan *sarama.ConsumerMessage)
@@ -12,7 +41,7 @@ func consume(topic string, master sarama.Consumer) (chan *sarama.ConsumerMessage
 	partitions, _ := master.Partitions(topic)
 	consumer, err := master.ConsumePartition(topic, partitions[0], sarama.OffsetOldest)
 	if err != nil {
-		fmt.Printf("Topic %v Partitions: %v", topic, partitions)
+		log.Printf("Topic %v Partitions: %v", topic, partitions)
 		panic(err)
 	}
 
@@ -22,10 +51,10 @@ func consume(topic string, master sarama.Consumer) (chan *sarama.ConsumerMessage
 			select {
 			case consumerError := <-consumer.Errors():
 				errors <- consumerError
-				fmt.Println("consumerError: ", consumerError.Err)
+				log.Println("consumerError: ", consumerError.Err)
 			case msg := <-consumer.Messages():
 				consumers <- msg
-				fmt.Println("Got message on topic ", topic, msg.Value)
+				log.Println("Got message on topic ", topic, msg.Value)
 			}
 		}
 	}(topic, consumer)
@@ -35,7 +64,7 @@ func consume(topic string, master sarama.Consumer) (chan *sarama.ConsumerMessage
 
 func main() {
 	config := sarama.NewConfig()
-	config.ClientID = "go-kafka-consumer"
+	config.ClientID = "go-archiver"
 	config.Consumer.Return.Errors = true
 
 	brokers := []string{"kafka:9092"}
@@ -51,6 +80,9 @@ func main() {
 		}
 	}()
 
+	batcher := Batcher{}
+	batcher.initialize("/tmp/go-dump")
+
 	consumer, errors := consume("first_topic", master)
 
 	signals := make(chan os.Signal, 1)
@@ -61,13 +93,38 @@ func main() {
 		for {
 			select {
 			case msg := <-consumer:
-				fmt.Println("Received messages", string(msg.Key), string(msg.Value))
+				go batcher.accumulate(string(msg.Value))
 			case consumerError := <-errors:
-				fmt.Println("Received consumerError ", string(consumerError.Topic), string(consumerError.Partition), consumerError.Err)
+				log.Println("Received consumerError ", string(consumerError.Topic), string(consumerError.Partition), consumerError.Err)
 				doneCh <- struct{}{}
 			case <-signals:
-				fmt.Println("Interrupt is detected")
+				log.Println("Interrupt is detected")
 				doneCh <- struct{}{}
+			}
+		}
+	}()
+
+	timer := time.NewTimer(2 * time.Second)
+	go func() {
+		for {
+			select {
+			case <-timer.C:
+				log.Println("timed out ... ")
+				if len(batcher.buffer) > 0 {
+					log.Println("flushing out the buffer")
+					batcher.flush()
+				}
+				timer = time.NewTimer(2 * time.Second)
+			default:
+				batcher.buffer = append(batcher.buffer, <-batcher.from)
+				if len(batcher.buffer) == 4 {
+					log.Println("capacity reached ... flushing the buffer")
+					batcher.flush()
+					stop := timer.Stop()
+					if stop {
+						timer = time.NewTimer(2 * time.Second)
+					}
+				}
 			}
 		}
 	}()
