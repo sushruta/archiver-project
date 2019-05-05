@@ -2,10 +2,12 @@
 
 set -ex
 
+/usr/sbin/sshd
+
 # $HADOOP_CONF_DIR/hadoop-env.sh
 
-hdfs namenode -format
-start-dfs.sh
+# hdfs namenode -format
+# start-dfs.sh
 
 ## # add some adhoc directories
 ## $HADOOP_PREFIX/bin/hdfs dfs -mkdir /user
