@@ -1,7 +1,114 @@
 
-version: 3
+version: '3'
 
 services:
-    hadoop-namenode:
-        image: alpine_hadoop28
+    zookeeper:
+        image: asappinc/alpine_zookeeper34
         ports:
+            - "0.0.0.0:2181:2181"
+        healthcheck:
+            test: "nc -z localhost 2181"
+            interval: 1s
+            retries: 120
+
+    kafka:
+        image: asappinc/alpine_kafka1
+        ports:
+        - "0.0.0.0:9092:9092"
+        depends_on:
+        - zookeeper
+        environment:
+            KAFKA_CREATE_TOPICS: "first_topic:4:1,second_topic:8:1,third_topic:12:1"
+            KAFKA_ADVERTISED_PORT: 9092
+            KAFKA_ADVERTISED_HOST_NAME: kafka
+            KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+            KAFKA_LOG_RETENTION_HOURS: 1
+            KAFKA_LOG_SEGMENT_BYTES: 1048576
+        healthcheck:
+            test: "nc -z localhost 9092"
+            interval: 1s
+            retries: 120
+
+#    namenode:
+#        build:
+#            context: ./hadoop-docker/
+#            dockerfile: Dockerfile.namenode
+#        ports:
+#            - "0.0.0.0:50070:50070"
+#            - "0.0.0.0:8088:8088"
+#        depends_on:
+#            - datanode1
+#            - datanode2
+#    
+#    datanode1:
+#        build:
+#            context: ./hadoop-docker/
+#            dockerfile: Dockerfile.datanode
+#    
+#    datanode2:
+#        build:
+#            context: ./hadoop-docker/
+#            dockerfile: Dockerfile.datanode
+#    
+#    jobmanager:
+#        build:
+#            context: ./flink-docker/
+#            dockerfile: Dockerfile
+#        ports:
+#            - "0.0.0.0:8081:8081"
+#        command: ["jobmanager"]
+#        depends_on:
+#            - zookeeper
+#            - namenode
+#            - taskmanager1
+#            - taskmanager2
+#    
+#    taskmanager1:
+#        build:
+#            context: ./flink-docker/
+#            dockerfile: Dockerfile
+#        command: ["taskmanager"]
+#        depends_on:
+#            - zookeeper
+#            - namenode
+#    
+#    taskmanager2:
+#        build:
+#            context: ./flink-docker/
+#            dockerfile: Dockerfile
+#        command: ["taskmanager"]
+#        depends_on:
+#            - zookeeper
+#            - namenode
+#
+#    archiver-flink:
+#        build:
+#            context: ./archiver-flink/
+#            dockerfile: Dockerfile
+#        depends_on:
+#            - kafka
+#            - jobmanager
+
+    producer:
+        build:
+            context: ./golang-stuff/
+            dockerfile: Dockerfile
+        command: ["go", "run", "cmd/produce/produce.go"]
+        environment:
+            KAFKA_BROKERS: kafka:9092
+            KAFKA_TOPICS: "first_topic,second_topic,third_topic"
+        depends_on:
+            - kafka
+        
+    consumer:
+        build:
+            context: ./golang-stuff/
+            dockerfile: Dockerfile
+        command: ["go", "run", "cmd/archiver/archiver.go"]
+        environment:
+            KAFKA_BROKERS: kafka:9092
+            KAFKA_TOPICS: "first_topic,second_topic,third_topic"
+
+        depends_on:
+            - kafka
+            - producer

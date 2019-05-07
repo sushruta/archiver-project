@@ -1,92 +1,45 @@
-# DI Project Eng/Platform:
+#### Changes I Made
 
-Message buses serve as a key component for asynchronous systems as well as data pipelines.
+* In the produce.go and consumer.go files, I added `config.Version = sarama.V0.11.0.0` to make sure timestamps are embedded in the message and I can use them.
+* created archiver.go file which is my attempt at writing an archiving tool for kafka messages
+* I decreased the time between producing messages thereby making the stream a little *faster*
 
-In terms of data processing, we need to be able to store, archive, and query this data.
+#### How to run
 
-The key goal for this project is to create a data archiver for a message bus.  
+Just do a `docker-compose up --build`
 
-By archiver we mean pulling data from the message bus, and save that data to disk.
+I usually do a `docker-compose up --build | grep -v kafka_1 | grep -v zookeeper_1` to get rid of the verbose logs of kafka and zookeeper.
 
-### Final goals:
+By default, the target location of the archive is `/tmp/go-archive-datalake` but it can be changed using the env var - `BASE_DIR`
 
-- Create a Kafka Archiver that consumes data from arbitrary topics and places them in neat
-  files on the file system
-  
-  - Each "archive" should be partitioned by Message type (there are 3 different ones here)
-    - meaning if the kafka messages are of type `object.one` then it should live in a folder
-     `/path/to/archive/type=object.one/...`
-     
-  - Each "archive" should also be date partitioned 
-    - meaning if the kafka message timestamp is 2019-08-01 03:23:03 the archive location 
-    would be a folder of the name `/path/to/archive/dt=2019-08-01/hr=03/my_archive_file`)
-  
-  - The archive files themselves should not be a "file per message", but a collection of messages.
-  
-  - There are many edge cases and interesting error conditions for this, you will not have time to implement
-  all the required "cruft" to be an ideal production ready system, so just make note of those places where you know
-  there will be issues, and implement what you can
-  
-  - Along those same lines, make note of improvements, features, etc you would make if you had the time.
-   
-  - Place your code as a "command" in `./src/github.com/asappinc/archiver/cmd/archiver.go` 
-  
-  - It should be easily run via `go run archiver/cmd/archiver.go`
-  
-  
-### Extra Credit: 
+To inspect the data dump, I was `exec-ing` into the docker container and checking the contents of the above directory. Some things I was checking was -
 
-Create a Kafka Archiver that consumes data from arbitrary topics and places messages into a mysql or elasticsearch
-so they can be queried.
-
-### Some General notes about the system:
-
-- There can be different messages on a given kafka topic: each message type should have it's own archive
-- Message types are not limited to a single kafka topic
-- Messages will be in the JSON format
+* the number of lines in each file
+* the number of parts in each batch
+* ... etc. ...
 
 
-### What you are provided:
+#### Challenges and Reflections
 
-- In Docker you will see a docker-compose.yml file that has a few applications running
-	- Kafka/Zookeeper: a simple 1 node kafka "cluster"
-	- Generator: a simple generator of data producing data into that kafka
-	- MySQL: the RDS for one of your goals.
-	- consumer: a base skeleton of consumer code to create your archiver from
-		note: GoLang was chosen here, feel free to choose a language that suits you better
-		This consumer is a simple "echo message" consumer (just emits messages to stdout)
-    - producer: a simple 1 message per second producer
+* Having no experience in writing code in Golang, it was definitely rewarding to see one write this application in golang.
+* The code is not robust to very fast moving kafka streams - there may be one or two race conditions which I wanted to get rid of but didn't get the time. For example, if a part file is being closed while a new batch of messages comes in, where would the new file be stored. Depending on the newfile number, I may end up with a bit of data loss. I would ideally fix it by putting a channel or a mutex in between.
+* The code is not fault tolerant - let us say the code crashes for some reason and we bring it back. All the messages which were sent in the meanwhile are lost. Basically, we don't keep track of the offset where we are. That can be fixed by constantly storing some metadata information.
+* Some golang pain points - casting things from `interface{}` to the data type. Understanding some internals of sarama to make the timestamp working took more time than expected.
 
-## Getting started
+#### Attempt to put Flink into action
 
-This will startup the relevant DBs, and drop you into a shell where go and go-path and configs are preset for you
+* Rather than write the entire archiver in its full glory from scratch, I made an attempt to use Apache Flink to do all this for me. However, to get all the features that are missing from my golang code - 
 
-1. Build things and get a dev shell
-    
-    
-    ```
-    docker-compose build archiver
-    docker-compose run --rm dev bash
-    ```
+* fault tolerance
+* checkpointing
+* disaster recovery
+* exactly one semantics
 
+I would have required to deploy a full standalone flink cluster which is able to connect to an HDFS backend.
 
-1. Start a simple producers in another shell
+* I was able to create a `Hadoop` cluster (`1` namenode and `2` datanodes)
+* A `Flink` cluster (`1` jobmanager and `2` taskmanagers).
+* I was also able to connect the cluster to a `Zookeeper` quorom.
+* I was able to submit my flink job to the cluster.
 
-    ```
-    docker-compose run --rm producer
-    ```
-
-1. Start a simple echo consumer in another shell
-
-    ```
-    docker-compose run --rm echoconsumer
-    ```
-    
-
-You should see messages being produced from the producer
-
-## Changes I made --
-
-* I moved `src` and `Dockerfile` to `go` directory to place all the golang stuff there
-* I created a `flinkapp` directory to house my flink code that will do the archiving
-* I have appropriately changed `docker-compose.yml` to reflect the change in `Dockerfile` location
+However, the cluster wasn't able to fully connect to HDFS backend completely and crashed. Given some more time, I would have loved to get this working and make sure a version closer to production grade archiving tool was ready. 
