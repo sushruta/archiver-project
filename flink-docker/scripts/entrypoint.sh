@@ -4,4 +4,11 @@ set -ex
 
 service ssh restart
 
-exec /bin/sh -c "trap : TERM INT; (while true; do sleep 1000; done) & wait"
+if [[ $1 == "taskmanager" ]]; then
+  while true; do sleep 1000; done
+fi
+
+if [[ $1 == "jobmanager" ]]; then
+  start-cluster.sh
+  while true; do sleep 1000; done
+fi

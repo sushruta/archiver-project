@@ -68,6 +68,7 @@ func NewConsumer(brokers []string, topics []string, groupID string) (*KfConsumer
 	s.conf.Consumer.MaxProcessingTime = time.Millisecond * 250
 	s.conf.Consumer.Fetch.Default = 1024 * 1024
 	s.conf.Metadata.RefreshFrequency = 120 * time.Second
+	s.conf.Version = sarama.V0_11_0_0
 
 	return s, nil
 }

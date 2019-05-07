@@ -28,7 +28,7 @@ RUN curl -s https://archive.apache.org/dist/hadoop/common/hadoop-2.8.3/hadoop-2.
 ENV HADOOP_HOME=/usr/local/hadoop
 ENV FLINK_HOME=/opt/flink
 ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop \
-    FLINK_URL=http://apache.claz.org/flink/flink-1.8.0/flink-1.8.0-bin-scala_2.11.tgz \
+    FLINK_URL=http://apache.cs.utah.edu/flink/flink-1.8.0/flink-1.8.0-bin-scala_2.11.tgz \
     FLINK_HADOOP_URL=https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop2-uber/2.8.3-1.8.0/flink-shaded-hadoop2-uber-2.8.3-1.8.0.jar \
     FLINK_CONF_DIR=$FLINK_HOME/conf \
     PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$FLINK_HOME/bin:$PATH
@@ -39,8 +39,11 @@ ADD conf/hdfs-site.xml $HADOOP_CONF_DIR/hdfs-site.xml
 ADD conf/mapred-site.xml $HADOOP_CONF_DIR/mapred-site.xml
 ADD conf/yarn-site.xml $HADOOP_CONF_DIR/yarn-site.xml
 
-RUN curl -s $FLINK_URL | tar -xz -C /opt/ && \
+WORKDIR /opt
+RUN curl -s $FLINK_URL -o flink.tgz && \
+    tar xvzf flink.tgz && \
     mv /opt/flink-1.8.0 /opt/flink && \
+    rm flink.tgz && \
     curl -s $FLINK_HADOOP_URL -o $FLINK_HOME/lib/hadoop.jar
 
 COPY conf/flink-conf.yaml $FLINK_CONF_DIR/flink-conf.yaml
@@ -49,20 +52,8 @@ COPY conf/log4j-console.properties $FLINK_CONF_DIR/log4j-console.properties
 RUN echo "taskmanager1" >  $FLINK_CONF_DIR/slaves && \
     echo "taskmanager2" >> $FLINK_CONF_DIR/slaves
 
-## ENV SBT_VERSION=1.2.4
-## RUN apk add --no-cache curl && \
-##     curl -fsL https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz | tar xfz - -C /usr/local && \
-##     ln -s /usr/local/sbt/bin/* /usr/local/bin/ && \
-##     apk del curl
-## 
-## ADD app /usr/src/app
-## WORKDIR /usr/src/app
-## RUN sbt clean compile assembly
-
 ADD scripts/entrypoint.sh /bin/
 RUN chmod +x /bin/entrypoint.sh
-
-EXPOSE 8081 6121 6122 6123
 
 ENTRYPOINT ["/bin/entrypoint.sh"]
 CMD []
