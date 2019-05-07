@@ -86,7 +86,7 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt)
 
-	t := time.NewTicker(time.Second)
+	t := time.NewTicker(300 * time.Millisecond)
 	for {
 		select {
 		case <-t.C:
